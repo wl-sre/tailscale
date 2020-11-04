@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/windows/tunnel/winipcfg"
 	"inet.af/netaddr"
 )
@@ -237,4 +238,31 @@ func TestDeltaRouteData(t *testing.T) {
 	if !equalRouteDatas(del, wantDel) {
 		t.Errorf("del:\n   got: %v\n  want: %v\n", del, wantDel)
 	}
+}
+
+func TestWinIPCfgIPInterface(t *testing.T) {
+	guid, err := windows.GUIDFromString("{37217669-42DA-4657-A55B-0D995D328250}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	/*
+		const minimalMTU = 1280
+		mytun, err := tun.CreateTUN("Tailscale", minimalMTU)
+		if err != nil {
+			t.Fatal(err)
+		}
+		guid := mytun.(*tun.NativeTun).GUID()
+	*/
+
+	luid, err := winipcfg.LUIDFromGUID(&guid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("luid=%+v", luid)
+
+	iface, err := luid.IPInterface(windows.AF_INET)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("iface=%+v", iface)
 }
